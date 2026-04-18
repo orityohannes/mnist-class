@@ -12,6 +12,12 @@ def softmax(x):
     exp_x = np.exp(x_shifted)
     return exp_x / np.sum(exp_x, axis=1, keepdims=True)
 
+def cross_entropy_loss(pred, y):
+    N = pred.shape[0]
+    correct_pred = pred[np.arange(N), y]
+    loss = -np.sum(np.log(np.clip(correct_pred, 1e-15, 1.0))) / N
+    return loss
+
 def dataloader(train_dataset, test_dataset, batch_size=128):
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
@@ -33,11 +39,11 @@ class MLP:
         self.lr = lr
 
         # LAYER 1
-        self.w1 = np.random.randn(input_size, hidden_size) * np.sqrt(2.0 / input_size)
+        self.w1 = np.random.randn(input_size, hidden_size) * np.sqrt(1.0 / input_size)
         self.b1 = np.zeros((1, hidden_size))
 
         # LAYER 2
-        self.w2 = np.random.randn(hidden_size, output_size) * np.sqrt(2.0 / hidden_size)
+        self.w2 = np.random.randn(hidden_size, output_size) * np.sqrt(1.0 / hidden_size)
         self.b2 = np.zeros((1, output_size))
         
     
@@ -70,20 +76,18 @@ class MLP:
         db1 = np.sum(delta1, axis=0, keepdims=True) / N
         
         # update the weights and biases
-        self.w2 = self.w2 - (self.lr * dw2)
-        self.b2 = self.b2 - (self.lr * db2)
-        self.w1 = self.w1 - (self.lr * dw1)
-        self.b1 = self.b1 - (self.lr * db1)
+        self.w2 -= self.lr * dw2
+        self.b2 -= self.lr * db2
+        self.w1 -= self.lr * dw1
+        self.b1 -= self.lr * db1
         
 
     def train(self, x,y):
         # call forward function
         pred = self.forward(x)
         
-        # calculate loss
-        N = x.shape[0]
-        correct_pred = pred[np.arange(N), y]
-        loss = -np.sum(np.log(np.clip(correct_pred, 1e-15, 1.0))) / N
+        # calculate loss using cross-entropy loss function
+        loss = cross_entropy_loss(pred, y)
         
         # call backward function
         self.backward(x, y, pred)

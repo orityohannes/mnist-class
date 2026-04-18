@@ -2,7 +2,6 @@ import numpy as np
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from read_MNIST import load_data
 
 # ===================== Utility Functions ===================== #
 
@@ -13,6 +12,12 @@ def softmax(x):
     x_shifted = x - np.max(x, axis=1, keepdims=True)
     exp_x = np.exp(x_shifted)
     return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+
+def cross_entropy(pred, y):
+    N = pred.shape[0]
+    correct_pred = pred[np.arange(N), y]
+    loss = -np.sum(np.log(np.clip(correct_pred, 1e-15, 1.0))) / N
+    return loss
     
 
 # ===================== Data Loading ===================== #
@@ -31,14 +36,13 @@ def load_data():
 
 # ===================== CNN Structure ===================== #
 class CNN:
-    def __init__(self, input_size, num_filters, kernel_size, fc_output_size, lr):
+    def __init__(self, input_size, kernel_size, fc_output_size, lr):
         self.lr = lr
-        self.jernel_size = kernel_size
-        self.num_filters = num_filters
+        self.kernel_size = kernel_size
 
         self.conv_output_size = input_size - kernel_size + 1
-        self.flat_size = self.conv_output_size * self.conv_output_size * num_filters
-        self.kernel = np.random.randn(kernel_size, kernel_size, num_filters) * np.sqrt(2.0 / (kernel_size * kernel_size))
+        self.flat_size = self.conv_output_size * self.conv_output_size
+        self.kernel = np.random.randn(kernel_size, kernel_size) * np.sqrt(2.0 / (kernel_size * kernel_size))
 
         self.fc_w = np.random.randn(self.flat_size, fc_output_size) * np.sqrt(2.0 / self.flat_size)
         self.fc_b = np.zeros((1, fc_output_size))
@@ -49,13 +53,12 @@ class CNN:
         k = self.kernel_size
         c = self.conv_output_size
 
-        self.conv_output = np.zeros(N, c, c, self.num_filters)
+        self.conv_output = np.zeros((N, c, c))
 
         for i in range(c):
             for j in range(c):
                 patch = x[:, i:i+k, j:j+k]
-                for f in range(self.num_filters):
-                    self.conv_output[:, i, j, f] = np.sum(patch * self.kernel[:, :, f], axis=(1, 2))
+                self.conv_output[:, i, j] = np.sum(patch * self.kernel, axis=(1, 2))
         
         self.relu_output = relu(self.conv_output)
         self.flat_output = self.relu_output.reshape(N, -1)
@@ -65,26 +68,49 @@ class CNN:
         return outputs
 
     def backward(self, x, y, pred):
+        N = x.shape[0]
+        k = self.kernel_size
+        c = self.conv_output_size
+
         """ Backward propagation """
         # 1. one-hot encode the labels
+        y_onehot = np.zeros_like(pred)
+        y_onehot[np.arange(N), y] = 1
 
         # 2. Calculate softmax cross-entropy loss gradient
+        delta_fc = pred - y_onehot
         
         # 3. Calculate fully connected layer gradient
+        dw_fc = self.flat_output.T @ delta_fc / N
+        db_fc = np.sum(delta_fc, axis=0, keepdims=True) / N
+        delta_flat = delta_fc @ self.fc_w.T
+        delta_relu = delta_flat.reshape(self.relu_output.shape)
         
         # 4. Backpropagate through ReLU
+        delta_conv = delta_relu * (self.conv_output > 0)
         
         # 5. Calculate convolution kernel gradient
+        dw_kernel = np.zeros_like(self.kernel)
+        for i in range(c):
+            for j in range(c):
+                patch = x[:, i:i+k, j:j+k]
+                dw_kernel += np.sum(patch * delta_conv[:, i, j][:, None, None], axis=0) / N
         
         # 6. Update parameters
+        self.fc_w -= self.lr * dw_fc
+        self.fc_b -= self.lr * db_fc
+        self.kernel -= self.lr * dw_kernel
         
 
     def train(self, x, y):
         # call forward function
+        pred = self.forward(x)
         
         # calculate loss
+        loss = cross_entropy(pred, y)
         
         # call backward function
+        self.backward(x, y, pred)
 
         return loss
 
@@ -95,13 +121,12 @@ def main():
 
     # Second, define hyperparameters
     input_size = 28
-    num_filters = 1
     kernel_size = 5
     fc_output_size = 10
     lr = 0.01
     num_epochs = 5
 
-    model = CNN(input_size, num_filters, kernel_size, fc_output_size, lr)
+    model = CNN(input_size, kernel_size, fc_output_size, lr)
     
 
     # Then, train the model
