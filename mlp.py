@@ -33,11 +33,11 @@ class MLP:
         self.lr = lr
 
         # LAYER 1
-        self.w1 = np.random.randn(input_size, hidden_size) * 0.01
+        self.w1 = np.random.randn(input_size, hidden_size) * np.sqrt(2.0 / input_size)
         self.b1 = np.zeros((1, hidden_size))
 
         # LAYER 2
-        self.w2 = np.random.randn(hidden_size, output_size) * 0.01
+        self.w2 = np.random.randn(hidden_size, output_size) * np.sqrt(2.0 / hidden_size)
         self.b2 = np.zeros((1, output_size))
         
     
@@ -59,7 +59,7 @@ class MLP:
         # one-hot encode the labels
         y_onehot = np.zeros_like(pred)
         y_onehot[np.arange(N), y] = 1
-        delta2 = (pred - y_onehot) / N
+        delta2 = pred - y_onehot
 
         # compute the gradients
         dw2 = (self.a1.T @ delta2) / N
@@ -98,7 +98,7 @@ def main():
     input_size = 28*28  # MNIST images are 28x28 pixels
     hidden_size = 256
     output_size = 10
-    lr = 0.1
+    lr = 1.0
     num_epochs = 30
 
     model = MLP(input_size, hidden_size, output_size, lr)
