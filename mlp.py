@@ -45,15 +45,37 @@ class MLP:
     
     def forward(self, x):  # forward propagation to get predictions
         
+        # LAYER 1
+        self.z1 = x @ self.w1 + self.b1
+        self.a1 = sigmoid(self.z1)
+
+        # LAYER 2
+        self.z2 = self.a1 @ self.w2 + self.b2
+        self.a2 = softmax(self.z2)
         
-        return outputs
+        return self.a2
     
     def backward(self, x, y, pred):
+        N = x.shape[0]
+
         # one-hot encode the labels
+        y_onehot = np.zeros_like(pred)
+        y_onehot[np.arange(N), y] = 1
+        delta2 = (pred - y_onehot) / N
 
         # compute the gradients
+        dw2 = (self.a1.T @ delta2) / N
+        db2 = np.sum(delta2, axis=0, keepdims=True) / N
+        sigmoid_deriv = self.a1 * (1 - self.a1)
+        delta1 = (delta2 @ self.w2.T) * sigmoid_deriv
+        dw1 = (x.T @ delta1) / N
+        db1 = np.sum(delta1, axis=0, keepdims=True) / N
         
         # update the weights and biases
+        self.w2 = self.w2 - (self.lr * dw2)
+        self.b2 = self.b2 - (self.lr * db2)
+        self.w1 = self.w1 - (self.lr * dw1)
+        self.b1 = self.b1 - (self.lr * db1)
         
 
     def train(self, x,y):
@@ -71,6 +93,9 @@ def main():
 
     # Second, define hyperparameters
     input_size = 28*28  # MNIST images are 28x28 pixels
+    hidden_size = 128
+    output_size = 10
+    lr = 0.1
     num_epochs = 100
 
 
