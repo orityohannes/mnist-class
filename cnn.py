@@ -21,7 +21,7 @@ def cross_entropy(pred, y):
     
 
 # ===================== Data Loading ===================== #
-def dataloader(train_dataset, test_dataset, batch_size=64):
+def dataloader(train_dataset, test_dataset, batch_size=128):
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
     return train_loader, test_loader
@@ -39,12 +39,13 @@ class CNN:
     def __init__(self, input_size, kernel_size, fc_output_size, lr):
         self.lr = lr
         self.kernel_size = kernel_size
+        self.kernel_bias = 0.0
 
         self.conv_output_size = input_size - kernel_size + 1
         self.flat_size = self.conv_output_size * self.conv_output_size
-        self.kernel = np.random.randn(kernel_size, kernel_size) * np.sqrt(2.0 / (kernel_size * kernel_size))
+        self.kernel = np.random.randn(kernel_size, kernel_size) * np.sqrt(1.0 / (kernel_size * kernel_size))
 
-        self.fc_w = np.random.randn(self.flat_size, fc_output_size) * np.sqrt(2.0 / self.flat_size)
+        self.fc_w = np.random.randn(self.flat_size, fc_output_size) * np.sqrt(1.0 / self.flat_size)
         self.fc_b = np.zeros((1, fc_output_size))
         
 
@@ -58,7 +59,7 @@ class CNN:
         for i in range(c):
             for j in range(c):
                 patch = x[:, i:i+k, j:j+k]
-                self.conv_output[:, i, j] = np.sum(patch * self.kernel, axis=(1, 2))
+                self.conv_output[:, i, j] = np.sum(patch * self.kernel, axis=(1, 2)) + self.kernel_bias
         
         self.relu_output = relu(self.conv_output)
         self.flat_output = self.relu_output.reshape(N, -1)
@@ -88,6 +89,8 @@ class CNN:
         
         # 4. Backpropagate through ReLU
         delta_conv = delta_relu * (self.conv_output > 0)
+
+        db_kernel = np.sum(delta_conv) / N
         
         # 5. Calculate convolution kernel gradient
         dw_kernel = np.zeros_like(self.kernel)
@@ -100,6 +103,7 @@ class CNN:
         self.fc_w -= self.lr * dw_fc
         self.fc_b -= self.lr * db_fc
         self.kernel -= self.lr * dw_kernel
+        self.kernel_bias -= self.lr * db_kernel
         
 
     def train(self, x, y):
@@ -121,9 +125,9 @@ def main():
 
     # Second, define hyperparameters
     input_size = 28
-    kernel_size = 5
+    kernel_size = 7
     fc_output_size = 10
-    lr = 0.01
+    lr = 0.1
     num_epochs = 5
 
     model = CNN(input_size, kernel_size, fc_output_size, lr)
