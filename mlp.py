@@ -1,5 +1,3 @@
-from read_MNIST import load_data
-
 import numpy as np
 import torchvision
 import torchvision.transforms as transforms
@@ -80,10 +78,15 @@ class MLP:
 
     def train(self, x,y):
         # call forward function
+        pred = self.forward(x)
         
         # calculate loss
+        N = x.shape[0]
+        correct_pred = pred[np.arange(N), y]
+        loss = -np.sum(np.log(np.clip(correct_pred, 1e-15, 1.0))) / N
         
         # call backward function
+        self.backward(x, y, pred)
 
         return loss
 
@@ -93,17 +96,21 @@ def main():
 
     # Second, define hyperparameters
     input_size = 28*28  # MNIST images are 28x28 pixels
-    hidden_size = 128
+    hidden_size = 256
     output_size = 10
     lr = 0.1
-    num_epochs = 100
+    num_epochs = 30
 
+    model = MLP(input_size, hidden_size, output_size, lr)
 
     # Then, train the model
     for epoch in range(num_epochs):
         total_loss = 0
 
         for inputs, lables in train_loader:  # define training phase for training model
+            x = inputs.view(-1, input_size).numpy()
+            y = lables.numpy()
+            total_loss += model.train(x, y)
             
 
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {total_loss/len(train_loader)}") # print the loss for each epoch
