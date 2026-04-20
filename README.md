@@ -21,6 +21,7 @@ The goal is to understand the fundamentals of deep learning by manually implemen
 
 ### Inital Performance
 - Accuracy: ~68%
+- After Improvements: ~98%
 
 ### Improvements Made
 - Increased learning rate: 0.1 -> 1.0
@@ -41,6 +42,7 @@ The goal is to understand the fundamentals of deep learning by manually implemen
 
 ### Performance
 - Accuracy: ~92%
+- After Improvements: ~94%
 
 ### Improvements Made
 - Added convolution bias
