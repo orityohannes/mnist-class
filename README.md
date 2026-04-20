@@ -57,3 +57,38 @@ The goal is to understand the fundamentals of deep learning by manually implemen
   
 ### Key Insight
 - The primary bottleneck is the single filter constraint, not optimization
+
+## How to Run:
+#### 1. Clone or Download the Repository
+If using Git:
+
+    git clone <your-repo-link>
+    cd <your-repo-folder>
+
+Or just download and unzip the folder.
+
+### 2. Set up a Virtual Enviorment
+Create a virtual environment:
+
+    python -m venv venv
+
+Activate it:
+
+Mac/Linux:
+
+    source venv/bin/activate
+    
+Windows:
+
+    venv\Scripts\activate
+
+### 3. Install Dependencies 
+Install the required libraries:
+
+    pip install numpy torchvision torch
+
+### 4. Run the Models
+Navigate to the files location and run:
+
+    python mlp.py
+    python cnn.py
