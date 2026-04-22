@@ -54,6 +54,7 @@ class CNN:
         k = self.kernel_size
         c = self.conv_output_size
 
+        # CONVOLUTIONAL LAYER
         self.conv_output = np.zeros((N, c, c))
 
         for i in range(c):
@@ -61,8 +62,11 @@ class CNN:
                 patch = x[:, i:i+k, j:j+k]
                 self.conv_output[:, i, j] = np.sum(patch * self.kernel, axis=(1, 2)) + self.kernel_bias
         
+        # RELU ACTIVATION + FLATTENING
         self.relu_output = relu(self.conv_output)
         self.flat_output = self.relu_output.reshape(N, -1)
+
+        # FULLY CONNECTED LAYER
         self.fc_output = self.flat_output @ self.fc_w + self.fc_b
         outputs = softmax(self.fc_output)
 
