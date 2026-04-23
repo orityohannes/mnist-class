@@ -19,7 +19,7 @@ The goal is to understand the fundamentals of deep learning by manually implemen
 - Hidden layer: 256 neurons (Sigmoid activation)
 - Output layer: 10 neurons (Softmax)
 
-### Inital Performance
+### Initial Performance
 - Accuracy: ~68%
 - After Improvements: ~98%
 
@@ -30,7 +30,7 @@ The goal is to understand the fundamentals of deep learning by manually implemen
   - Divided gradients individually instead of averaging improperly
 ### Key Learnings
 - Proper weight initialization prevent vanishing/exploding gradients
-- Learning rate signficantly impacts convergence
+- Learning rate significantly impacts convergence
 - Sigmoid activation can limit performance due to saturation
 
 ## Task 2: Convolutional Neural Network
@@ -48,12 +48,11 @@ The goal is to understand the fundamentals of deep learning by manually implemen
 - Added convolution bias
 - Tuned learning rate:
   - Tested: 0.01, 0.5, 1.0
-  - Best: 1.0
+  - Best: 0.1
 - Experimented with kernel sizes
   - Tested: 3, 5, 7, 9
   - Best: 7
 - Adjusted weight scaling (2.0 -> 1.0)
-- Did not use Xavier/He initialization
   
 ### Key Insight
 - The primary bottleneck is the single filter constraint, not optimization
@@ -67,10 +66,24 @@ If using Git:
 
 Or just download and unzip the folder.
 
-### 2. Set up a Virtual Enviorment
+### 2. Set up a Virtual Environment
 Create a virtual environment:
 
     python -m venv venv
+
+Required Versions:
+
+    Python    3.10+
+    numpy     1.24+
+    torch     2.0+
+    torchvision 0.15+
+
+Recommended Versions:
+
+    Python        3.13.7
+    numpy         2.3.2
+    torch         2.11.0
+    torchvision   0.26.0
 
 Activate it:
 
